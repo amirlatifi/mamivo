@@ -1,0 +1,37 @@
+services:
+  mamivo-db:
+    container_name: mamivo-db
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=mamivo'
+      - 'POSTGRES_PASSWORD=root'
+      - 'POSTGRES_USER=root'
+      - 'POSTGRES_DB=mamivo'
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d mamivo" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - mamivo
+
+  mamivo:
+    image: "amirlatifi/mamivo:01"
+    container_name: mamivo-ms
+    ports:
+      - 8080:8080
+    depends_on:
+      mamivo-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://mamivo-db:5432/mamivo"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    networks:
+      - mamivo
+
+networks:
+  mamivo:
+    driver: "bridge"
